@@ -30,7 +30,34 @@ async function listWorkerTotal() {
   return total;
 }
 
+async function listTaskTotal() {
+  let total = await read('taskTotal');
+  if (!total) {
+    total = 0;
+  }
+  return total;
+}
+
+async function listTaskDone() {
+  let total = await read('taskDone');
+  if (!total) {
+    total = 0;
+  }
+  return total;
+}
+
+async function listTaskCancelled() {
+  let total = await read('taskCancelled');
+  if (!total) {
+    total = 0;
+  }
+  return total;
+}
+
 module.exports = {
   workerLog,
   listWorkerTotal,
+	listTaskTotal, 
+	listTaskDone, 
+	listTaskCancelled,
 };

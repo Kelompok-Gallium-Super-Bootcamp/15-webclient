@@ -1,7 +1,7 @@
 const { createServer } = require('http');
 const url = require('url');
 const { stdout } = require('process');
-const { workerTotalSvc } = require('./performance.service');
+const { workerTotalSvc, taskCancelledSvc, taskDoneSvc, taskTotalSvc } = require('./performance.service');
 
 let server;
 
@@ -36,6 +36,27 @@ function run() {
         case '/worker/total':
           if (req.method === 'GET') {
             return workerTotalSvc(req, res);
+          } else {
+            respond(404);
+          }
+          break;
+				case '/task/total':
+          if (req.method === 'GET') {
+            return taskTotalSvc(req, res);
+          } else {
+            respond(404);
+          }
+          break;
+				case '/task/done':
+          if (req.method === 'GET') {
+            return taskDoneSvc(req, res);
+          } else {
+            respond(404);
+          }
+          break;
+				case '/task/cancelled':
+          if (req.method === 'GET') {
+            return taskCancelledSvc(req, res);
           } else {
             respond(404);
           }
