@@ -2,25 +2,28 @@ const Busboy = require('busboy');
 const url = require('url');
 const { Writable } = require('stream');
 const {
-  register,
-  list,
-  remove,
-  ERROR_REGISTER_DATA_INVALID,
-  ERROR_WORKER_NOT_FOUND,
-} = require('./worker');
+  registerTask,
+  listTask,
+  ERROR_DATA_TASK_MISSING,
+  ERROR_TASK_NOT_FOUND,
+  INFO_TASK_WORKER_WAS_SUBMITTED,
+  ERROR_WORKER_ID_INVALID,
+  ERROR_DATA_TASK_INVALID,
+  updateStatusTask,
+} = require('./task');
+const { ERROR_WORKER_NOT_FOUND } = require('../workers/worker');
 const { saveFile } = require('../lib/storage');
-const { addWorkerLog, removeWorkerLog } = require('./worker.nats');
+// eslint-disable-next-line no-unused-vars
+const { IncomingMessage, ServerResponse } = require('http');
 
-function registerSvc(req, res) {
+function registerTaskSvc(req, res) {
   const busboy = new Busboy({ headers: req.headers });
 
   const data = {
-    name: '',
-    address: '',
-    email: '',
-    telephone: '',
-    biography: '',
-    photo: '',
+    job: '',
+    status: '',
+    workerId: '',
+    document: '',
   };
 
   let finished = false;
@@ -35,28 +38,26 @@ function registerSvc(req, res) {
 
   busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
     switch (fieldname) {
-      case 'photo':
+      case 'document':
         try {
-          data.photo = await saveFile('photo', file, mimetype);
+          data.document = await saveFile(file, mimetype);
         } catch (err) {
           abort();
         }
         if (finished) {
           try {
-            const worker = await register(data);
-            addWorkerLog();
+            const task = await registerTask(data);
             res.setHeader('content-type', 'application/json');
-            res.write(JSON.stringify(worker));
-						res.end();
+            res.write(JSON.stringify(task));
           } catch (err) {
-            if (err === ERROR_REGISTER_DATA_INVALID) {
+            if (err === ERROR_DATA_TASK_MISSING) {
               res.statusCode = 401;
             } else {
               res.statusCode = 500;
             }
             res.write(err);
-						res.end();
           }
+          res.end();
         }
         break;
       default: {
@@ -71,9 +72,7 @@ function registerSvc(req, res) {
   });
 
   busboy.on('field', (fieldname, val) => {
-    if (
-      ['name', 'address', 'email', 'telephone', 'biography'].includes(fieldname)
-    ) {
+    if (['job', 'status', 'workerId'].includes(fieldname)) {
       data[fieldname] = val;
     }
   });
@@ -88,38 +87,26 @@ function registerSvc(req, res) {
   req.pipe(busboy);
 }
 
-async function listSvc(req, res) {
-  try {
-    const workers = await list();
-    res.setHeader('content-type', 'application/json');
-    res.write(JSON.stringify(workers));
-    res.end();
-  } catch (err) {
-    res.statusCode = 500;
-    res.end();
-    return;
-  }
-}
-
-async function removeSvc(req, res) {
+async function updateStatusTaskSvc(req, res) {
   const uri = url.parse(req.url, true);
-  const id = uri.query['id'];
-  if (!id) {
-    const ERROR_ID_NOT_FOUND = 'parameter id tidak ditemukan';
+  const data = {
+    id: uri.query['id'],
+    status: uri.query['status'],
+  };
+  if (!data.id) {
     res.statusCode = 401;
-    res.write(ERROR_ID_NOT_FOUND);
+    res.write('parameter id tidak ditemukan');
     res.end();
     return;
   }
   try {
-    const worker = await remove(parseInt(id));
-    removeWorkerLog();
+    const task = await updateStatusTask(data);
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
-    res.write(JSON.stringify(worker));
+    res.write(`${task} : Task was successfully UPDATED`);
     res.end();
   } catch (err) {
-    if (err === ERROR_WORKER_NOT_FOUND) {
+    if (err === ERROR_TASK_NOT_FOUND) {
       res.statusCode = 404;
       res.write(err);
       res.end();
@@ -131,8 +118,21 @@ async function removeSvc(req, res) {
   }
 }
 
+async function listTaskSvc(req, res) {
+  try {
+    const tasks = await listTask();
+    res.setHeader('content-type', 'application/json');
+    res.write(JSON.stringify(tasks));
+    res.end();
+  } catch (err) {
+    res.statusCode = 500;
+    res.end();
+    return;
+  }
+}
+
 module.exports = {
-  listSvc,
-  registerSvc,
-  removeSvc,
+  listTaskSvc,
+  registerTaskSvc,
+  updateStatusTaskSvc,
 };
