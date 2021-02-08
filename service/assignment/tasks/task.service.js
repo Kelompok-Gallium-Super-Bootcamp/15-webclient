@@ -2,25 +2,20 @@ const Busboy = require('busboy');
 const url = require('url');
 const { Writable } = require('stream');
 const {
-  performanceTotalTask,
-  performanceDoneTask,
-  performanceDroppedlTask,
-} = require('../message-bus/client');
-const {
   writeDataTask,
   doneDataTask,
   cancelDataTask,
   readTask,
-  removeTask,
   ERROR_REGISTER_DATA_INVALID,
   ERROR_DATA_NOT_FOUND,
-} = require('../lib/orm');
+} = require('./task');
 const { saveFile, randomFileName } = require('../lib/storage');
+const { addTotalTask, addCancelledTask, addDoneTask } = require('./task.nats');
 
 async function write(res, data) {
   try {
     await writeDataTask(data);
-    performanceTotalTask(1);
+    addTotalTask('plus');
     res.setHeader('content-type', 'application/json');
     res.write(JSON.stringify(data));
   } catch (err) {
@@ -30,11 +25,12 @@ async function write(res, data) {
       res.statusCode = 500;
     }
     res.write(err);
-  }
-  res.end();
+  }finally{
+		res.end();
+	}
 }
 
-function createTsk(req, res) {
+function createTaskSvc(req, res) {
   const busboy = new Busboy({ headers: req.headers });
 
   const data = {
@@ -57,9 +53,7 @@ function createTsk(req, res) {
     switch (fieldname) {
       case 'attachment':
         try {
-          const fileName = randomFileName(mimetype);
-          await saveFile(file, mimetype, 'file', fileName);
-          data.attachment = fileName;
+          data.attachment = await saveFile('attachment', file, mimetype);
         } catch (err) {
           abort();
         }
@@ -91,7 +85,7 @@ function createTsk(req, res) {
   req.pipe(busboy);
 }
 
-async function doneTsk(req, res) {
+async function doneTaskSvc(req, res) {
   const uri = url.parse(req.url, true);
   const id = uri.query['id'];
   if (!id) {
@@ -102,7 +96,7 @@ async function doneTsk(req, res) {
   }
   try {
     const tasks = await doneDataTask(id);
-    performanceDoneTask(1);
+    addDoneTask('plus');
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
     res.write(JSON.stringify(tasks));
@@ -120,7 +114,7 @@ async function doneTsk(req, res) {
   }
 }
 
-async function cancelTsk(req, res) {
+async function cancelTaskSvc(req, res) {
   const uri = url.parse(req.url, true);
   const id = uri.query['id'];
   if (!id) {
@@ -131,7 +125,7 @@ async function cancelTsk(req, res) {
   }
   try {
     const tasks = await cancelDataTask(id);
-    performanceDroppedlTask(1);
+    addCancelledTask('plus');
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
     res.write(JSON.stringify(tasks));
@@ -149,7 +143,7 @@ async function cancelTsk(req, res) {
   }
 }
 
-async function listTsk(req, res) {
+async function listTaskSvc(req, res) {
   try {
     const tasks = await readTask();
     res.setHeader('content-type', 'application/json');
@@ -162,39 +156,9 @@ async function listTsk(req, res) {
   }
 }
 
-async function removeTsk(req, res) {
-  const uri = url.parse(req.url, true);
-  const id = uri.query['id'];
-  if (!id) {
-    res.statusCode = 401;
-    res.write('parameter id tidak ditemukan');
-    res.end();
-    return;
-  }
-  try {
-    const worker = await removeTask(id);
-    res.setHeader('content-type', 'application/json');
-    performanceTotalTask(-1);
-    res.statusCode = 200;
-    res.write(JSON.stringify(worker));
-    res.end();
-  } catch (err) {
-    if (err === ERROR_DATA_NOT_FOUND) {
-      res.statusCode = 404;
-      res.write(err);
-      res.end();
-      return;
-    }
-    res.statusCode = 500;
-    res.end();
-    return;
-  }
-}
-
 module.exports = {
-  createTsk,
-  doneTsk,
-  cancelTsk,
-  listTsk,
-  removeTsk,
+  createTaskSvc,
+  doneTaskSvc,
+  cancelTaskSvc,
+  listTaskSvc,
 };

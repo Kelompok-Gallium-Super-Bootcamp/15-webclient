@@ -11,6 +11,24 @@ const {
 const { saveFile } = require('../lib/storage');
 const { addWorkerLog, removeWorkerLog } = require('./worker.nats');
 
+async function write(res, data) {
+  try {
+		const worker = await register(data);
+		addWorkerLog();
+		res.setHeader('content-type', 'application/json');
+		res.write(JSON.stringify(worker));
+	} catch (err) {
+		if (err === ERROR_REGISTER_DATA_INVALID) {
+			res.statusCode = 401;
+		} else {
+			res.statusCode = 500;
+		}
+		res.write(err);
+	} finally{
+		res.end();
+	}
+}
+
 function registerSvc(req, res) {
   const busboy = new Busboy({ headers: req.headers });
 
@@ -22,8 +40,6 @@ function registerSvc(req, res) {
     biography: '',
     photo: '',
   };
-
-  let finished = false;
 
   function abort() {
     req.unpipe(busboy);
@@ -40,22 +56,6 @@ function registerSvc(req, res) {
           data.photo = await saveFile('photo', file, mimetype);
         } catch (err) {
           abort();
-        }
-        if (finished) {
-          try {
-            const worker = await register(data);
-            addWorkerLog();
-            res.setHeader('content-type', 'application/json');
-            res.write(JSON.stringify(worker));
-          } catch (err) {
-            if (err === ERROR_REGISTER_DATA_INVALID) {
-              res.statusCode = 401;
-            } else {
-              res.statusCode = 500;
-            }
-            res.write(err);
-          }
-          res.end();
         }
         break;
       default: {
@@ -78,7 +78,7 @@ function registerSvc(req, res) {
   });
 
   busboy.on('finish', async () => {
-    finished = true;
+    await write(res, data);
   });
 
   req.on('aborted', abort);
