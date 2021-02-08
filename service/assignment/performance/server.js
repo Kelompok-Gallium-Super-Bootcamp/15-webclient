@@ -10,7 +10,20 @@ let server;
  */
 function run() {
   server = createServer((req, res) => {
-    function respond(statusCode, message) {
+    let method = req.method;
+		// handle preflight request
+		res.setHeader('Access-Control-Allow-Origin', '*');
+		res.setHeader('Access-Control-Request-Method', '*');
+		res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT');
+		res.setHeader('Access-Control-Allow-Headers', '*');
+
+		if (req.method === 'OPTIONS') {
+			res.writeHead(204);
+			res.end();
+			return;
+		}
+		
+		function respond(statusCode, message) {
       res.statusCode = statusCode || 200;
       res.write(message || '');
       res.end();
