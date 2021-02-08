@@ -8,31 +8,18 @@ const {
   readTask,
   ERROR_REGISTER_DATA_INVALID,
   ERROR_DATA_NOT_FOUND,
+	ERROR_ASSIGNEE_ID_NOT_FOUND,
+	ERROR_ALREADY_DONE,
+	ERROR_ALREADY_CANCEL,
 } = require('./task');
 const { saveFile, randomFileName } = require('../lib/storage');
 const { addTotalTask, addCancelledTask, addDoneTask } = require('./task.nats');
 
-async function write(res, data) {
-  try {
-    await writeDataTask(data);
-    addTotalTask();
-    res.setHeader('content-type', 'application/json');
-    res.write(JSON.stringify(data));
-  } catch (err) {
-    if (err === ERROR_REGISTER_DATA_INVALID) {
-      res.statusCode = 401;
-    } else {
-      res.statusCode = 500;
-    }
-    res.write(err);
-  }finally{
-		res.end();
-	}
-}
-
 function createTaskSvc(req, res) {
   const busboy = new Busboy({ headers: req.headers });
-
+	
+	let finished;
+	
   const data = {
     job: '',
     assigneeId: 0,
@@ -57,6 +44,25 @@ function createTaskSvc(req, res) {
         } catch (err) {
           abort();
         }
+				if(finished){
+					try {
+						await writeDataTask(data);
+						addTotalTask();
+						res.setHeader('content-type', 'application/json');
+						res.write(JSON.stringify(data));
+					} catch (err) {
+						if (err === ERROR_REGISTER_DATA_INVALID) {
+							res.statusCode = 401;
+						} else if (err === ERROR_ASSIGNEE_ID_NOT_FOUND) {
+							res.statusCode = 404;
+						} else {
+							res.statusCode = 500;
+						}
+						res.write(JSON.stringify(err));
+					}finally{
+						res.end();
+					}
+				}
         break;
       default: {
         const noop = new Writable({
@@ -76,7 +82,7 @@ function createTaskSvc(req, res) {
   });
 
   busboy.on('finish', async () => {
-    await write(res, data);
+    finished = true;
   });
 
   req.on('aborted', abort);

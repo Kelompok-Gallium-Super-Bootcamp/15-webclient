@@ -2,6 +2,9 @@ const { read, write, del, update } = require('../lib/relationship');
 
 const ERROR_REGISTER_DATA_INVALID = 'data registrasi pekerja tidak lengkap';
 const ERROR_DATA_NOT_FOUND = 'data task tidak ditemukan';
+const ERROR_ASSIGNEE_ID_NOT_FOUND = 'worker yang diassign tidak ditemukan';
+const ERROR_ALREADY_DONE = 'task sudah selesai';
+const ERROR_ALREADY_CANCEL = 'task sudah batal';
 
 async function writeDataTask(data){
   if (
@@ -13,7 +16,15 @@ async function writeDataTask(data){
   ) {
     throw ERROR_REGISTER_DATA_INVALID;
   }
-  const task = {
+	let workers = await read('worker');
+  if (!workers) {
+    throw ERROR_ASSIGNEE_ID_NOT_FOUND;
+  }
+  const idx = workers.findIndex((w) => w.id === parseInt(data.assigneeId));
+  if (idx === -1) {
+    throw ERROR_ASSIGNEE_ID_NOT_FOUND;
+  }
+	const task = {
     job: data.job,
     assigneeId: data.assigneeId,
     attachment: data.attachment,
@@ -21,7 +32,7 @@ async function writeDataTask(data){
     cancel: data.cancel,
   };
   await write('task', task);
-  return worker;
+  return task;
 }
 
 async function readTask() {
@@ -37,13 +48,25 @@ async function doneDataTask(id) {
   if (!tasks) {
     throw ERROR_DATA_NOT_FOUND;
   }
-  const idx = tasks.findIndex((w) => w.id === id);
+  const idx = tasks.findIndex((w) => w.id === parseInt(id));
   if (idx === -1) {
     throw ERROR_DATA_NOT_FOUND;
   }
+	if(tasks[idx].done){
+		throw ERROR_ALREADY_DONE;
+	}
+	if(tasks[idx].cancel){
+		throw ERROR_ALREADY_CANCEL;
+	}
   tasks[idx].done = true;
-	const data = tasks[idx];
-  await update('task', id, data);
+	const data = {
+    job: tasks[idx].job,
+    assigneeId: tasks[idx].assigneeId,
+    attachment: tasks[idx].attachment,
+    done: tasks[idx].done,
+    cancel: tasks[idx].cancel,
+  };
+	await update('task', id, data);
   return data;
 }
 
@@ -52,13 +75,25 @@ async function cancelDataTask(id) {
   if (!tasks) {
     throw ERROR_DATA_NOT_FOUND;
   }
-  const idx = tasks.findIndex((w) => w.id === id);
+  const idx = tasks.findIndex((w) => w.id === parseInt(id));
   if (idx === -1) {
     throw ERROR_DATA_NOT_FOUND;
   }
+	if(tasks[idx].done){
+		throw ERROR_ALREADY_DONE;
+	}
+	if(tasks[idx].cancel){
+		throw ERROR_ALREADY_CANCEL;
+	}
   tasks[idx].cancel = true;
-	const data = tasks[idx];
-  await update('task', id, data);
+	const data = {
+    job: tasks[idx].job,
+    assigneeId: tasks[idx].assigneeId,
+    attachment: tasks[idx].attachment,
+    done: tasks[idx].done,
+    cancel: tasks[idx].cancel,
+  };
+	await update('task', id, data);
   return data;
 }
 
@@ -69,4 +104,7 @@ module.exports = {
   readTask,
   ERROR_REGISTER_DATA_INVALID,
   ERROR_DATA_NOT_FOUND,
+	ERROR_ASSIGNEE_ID_NOT_FOUND,
+	ERROR_ALREADY_DONE,
+	ERROR_ALREADY_CANCEL,
 };
