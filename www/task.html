@@ -5,7 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Task</title>
   </head>
-  <body></body>
+  <body>
+    <div style="border: 2px solid black; width: 30%; margin: auto;">
+      <h3
+        id="button-tambah"
+        style="cursor: pointer; margin: auto; text-align: center; width: 30%"
+      >
+        Add Task
+      </h3>
+      <form
+        id="task-form"
+        action=""
+        method="post"
+        style="padding: 10px; width: 18rem; display: none"
+      >
+        <label for="task-name"> Name Task</label>
+        <input type="text" name="task-name" id="task-name" /><br />
+        <label for="task-attachment"> Attachment Task</label>
+        <input
+          type="file"
+          name="task-attachment"
+          id="task-attachment"
+        /><br />
+        <button type="submit">tambah</button>
+      </form>
+    </div>
+    <div id="main" style="display: flex"></div>
+    <div
+      id="card"
+      style="width: 18rem; border: 2px solid black; margin: 10px; display: none"
+    >
+      <div style="margin: 5px">
+        <h1 id="job">Job</h1>
+        <h5 id="attachment">asgasdsa.jpg</h5>
+        <span style="cursor: pointer" id="button-done">Selesai</span>
+        <span style="cursor: pointer" id="button-cancel">Batal</span>
+      </div>
+    </div>
+  </body>
 
-  <script type="text/javascript" src="./task.js"></script>
+  <script type="text/javascript" src="task.js"></script>
 </html>
