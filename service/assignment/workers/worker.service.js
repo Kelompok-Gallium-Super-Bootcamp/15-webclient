@@ -47,7 +47,7 @@ function registerSvc(req, res) {
             addWorkerLog();
             res.setHeader('content-type', 'application/json');
             res.write(JSON.stringify(worker));
-						res.end();
+            res.end();
           } catch (err) {
             if (err === ERROR_REGISTER_DATA_INVALID) {
               res.statusCode = 401;
@@ -55,7 +55,7 @@ function registerSvc(req, res) {
               res.statusCode = 500;
             }
             res.write(err);
-						res.end();
+            res.end();
           }
         }
         break;

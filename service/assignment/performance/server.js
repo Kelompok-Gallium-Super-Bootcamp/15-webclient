@@ -1,7 +1,12 @@
 const { createServer } = require('http');
 const url = require('url');
 const { stdout } = require('process');
-const { workerTotalSvc, taskCancelledSvc, taskDoneSvc, taskTotalSvc } = require('./performance.service');
+const {
+  workerTotalSvc,
+  taskCancelledSvc,
+  taskDoneSvc,
+  taskTotalSvc,
+} = require('./performance.service');
 
 let server;
 
@@ -10,20 +15,19 @@ let server;
  */
 function run() {
   server = createServer((req, res) => {
-    let method = req.method;
-		// handle preflight request
-		res.setHeader('Access-Control-Allow-Origin', '*');
-		res.setHeader('Access-Control-Request-Method', '*');
-		res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT');
-		res.setHeader('Access-Control-Allow-Headers', '*');
+    // handle preflight request
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Request-Method', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST, PUT');
+    res.setHeader('Access-Control-Allow-Headers', '*');
 
-		if (req.method === 'OPTIONS') {
-			res.writeHead(204);
-			res.end();
-			return;
-		}
-		
-		function respond(statusCode, message) {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    function respond(statusCode, message) {
       res.statusCode = statusCode || 200;
       res.write(message || '');
       res.end();
@@ -40,21 +44,21 @@ function run() {
             respond(404);
           }
           break;
-				case '/task/total':
+        case '/task/total':
           if (req.method === 'GET') {
             return taskTotalSvc(req, res);
           } else {
             respond(404);
           }
           break;
-				case '/task/done':
+        case '/task/done':
           if (req.method === 'GET') {
             return taskDoneSvc(req, res);
           } else {
             respond(404);
           }
           break;
-				case '/task/cancelled':
+        case '/task/cancelled':
           if (req.method === 'GET') {
             return taskCancelledSvc(req, res);
           } else {

@@ -1,4 +1,9 @@
-const { listWorkerTotal, listTaskTotal, listTaskDone, listTaskCancelled } = require('./performance');
+const {
+  listWorkerTotal,
+  listTaskTotal,
+  listTaskDone,
+  listTaskCancelled,
+} = require('./performance');
 
 async function workerTotalSvc(req, res) {
   try {
@@ -50,7 +55,7 @@ async function taskCancelledSvc(req, res) {
 
 module.exports = {
   workerTotalSvc,
-	taskCancelledSvc, 
-	taskDoneSvc, 
-	taskTotalSvc,
+  taskCancelledSvc,
+  taskDoneSvc,
+  taskTotalSvc,
 };
