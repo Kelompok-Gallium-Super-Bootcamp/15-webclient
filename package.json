@@ -30,6 +30,7 @@
     "pg-hstore": "^2.3.3",
     "redux-thunk": "^2.3.0",
     "rxjs": "^6.6.3",
+    "sequelize": "^6.5.0",
     "typeorm": "^0.2.30"
   }
 }
