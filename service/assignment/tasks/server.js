@@ -2,9 +2,10 @@ const { createServer } = require('http');
 const url = require('url');
 const { stdout } = require('process');
 const {
-  registerTaskSvc,
+  createTaskSvc,
+  doneTaskSvc,
+  cancelTaskSvc,
   listTaskSvc,
-  updateStatusTaskSvc,
 } = require('./task.service');
 
 let server;
@@ -24,21 +25,28 @@ function run() {
     try {
       const uri = url.parse(req.url, true);
       switch (uri.pathname) {
-        case '/tasks/add':
+        case '/register':
           if (req.method === 'POST') {
-            return registerTaskSvc(req, res);
+            return createTaskSvc(req, res);
           } else {
             respond(404);
           }
           break;
-        case '/tasks/update/status':
-          if (req.method === 'POST') {
-            return updateStatusTaskSvc(req, res);
+        case '/done':
+          if (req.method === 'PUT') {
+            return doneTaskSvc(req, res);
           } else {
             respond(404);
           }
           break;
-        case '/tasks/list':
+				case '/cancel':
+          if (req.method === 'PUT') {
+            return cancelTaskSvc(req, res);
+          } else {
+            respond(404);
+          }
+          break;
+        case '/list':
           if (req.method === 'GET') {
             return listTaskSvc(req, res);
           } else {

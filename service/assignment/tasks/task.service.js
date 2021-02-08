@@ -15,7 +15,7 @@ const { addTotalTask, addCancelledTask, addDoneTask } = require('./task.nats');
 async function write(res, data) {
   try {
     await writeDataTask(data);
-    addTotalTask('plus');
+    addTotalTask();
     res.setHeader('content-type', 'application/json');
     res.write(JSON.stringify(data));
   } catch (err) {
@@ -96,7 +96,7 @@ async function doneTaskSvc(req, res) {
   }
   try {
     const tasks = await doneDataTask(id);
-    addDoneTask('plus');
+    addDoneTask();
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
     res.write(JSON.stringify(tasks));
@@ -125,7 +125,7 @@ async function cancelTaskSvc(req, res) {
   }
   try {
     const tasks = await cancelDataTask(id);
-    addCancelledTask('plus');
+    addCancelledTask();
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
     res.write(JSON.stringify(tasks));
