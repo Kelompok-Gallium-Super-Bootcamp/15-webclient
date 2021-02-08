@@ -13,7 +13,7 @@ function addCancelledTask() {
 }
 
 module.exports = {
-  addTotalTask, 
-	addCancelledTask, 
-	addDoneTask
+  addTotalTask,
+  addCancelledTask,
+  addDoneTask,
 };

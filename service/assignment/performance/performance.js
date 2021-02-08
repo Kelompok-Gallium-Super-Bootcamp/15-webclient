@@ -89,9 +89,9 @@ async function listTaskCancelled() {
 
 module.exports = {
   workerLog,
-	taskTotalLog, 
-	taskDoneLog, 
-	taskCancelLog, 
+  taskTotalLog,
+  taskDoneLog,
+  taskCancelLog,
   listWorkerTotal,
   listTaskTotal,
   listTaskDone,

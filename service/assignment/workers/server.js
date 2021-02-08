@@ -22,7 +22,7 @@ function run() {
       return;
     }
 
-		function respond(statusCode, message) {
+    function respond(statusCode, message) {
       res.statusCode = statusCode || 200;
       res.write(message || '');
       res.end();
