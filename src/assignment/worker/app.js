@@ -2,7 +2,7 @@ require('./app.css');
 const { store$ } = require('./store');
 const {
   
-} = require('./api/worker.cliient');
+} = require('./api/worker.client');
 
 // view
 
