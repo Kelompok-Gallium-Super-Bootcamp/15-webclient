@@ -3,6 +3,7 @@ const path = require('path');
 module.exports = {
   entry: {
     main: './src/main.js',
+    worker: './src/assignment/worker/app.js',
     task: './src/assignment/task/app.js',
     performance: './src/assignment/performance/app.js',
   },

@@ -5,7 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Worker</title>
   </head>
-  <body></body>
+  <body>
+    <div class="container">
+      <table>
+        <tr>
+          <th colspan="2">Registrasi Data Workers</th>
+        </tr>
+        <tr>
+          <td>Nama</td>
+          <td><input id="nama" type="text" placeholder="Masukkan nama"/></td>
+        </tr>
+        <tr>
+          <td>Alamat</td>
+          <td><textarea id="alamat" placeholder="Masukkan alamat"></textarea></td>
+        </tr>
+        <tr>
+          <td>Email</td>
+          <td><input id="email" type="email" placeholder="Masukkan email"></td>
+        </tr>
+        <tr>
+          <td>Telepon</td>
+          <td><input id="telepon" type="number" placeholder="Masukkan nomor telepon"></td>
+        </tr>
+        <tr>
+          <td>Biografi</td>
+          <td><textarea id="bio" placeholder="Masukkan biografi anda"></textarea></td>
+        </tr>
+        <tr>
+          <td>Upload Foto</td>
+          <td><input id="foto" type="file"></td>
+        </tr>
+        <tr>
+          <td colspan="2"><button type="button" id="simpan">Simpan</button></td>
+        </tr>
+      </table>
+      <table class="table-data">
+
+      </table>
+    </div>
+  </body>
 
   <script type="text/javascript" src="./worker.js"></script>
 </html>
