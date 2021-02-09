@@ -3,28 +3,36 @@ const {
   createReducer,
   configureStore,
 } = require('@reduxjs/toolkit');
-const { initialState, add, done, undone, loadTasks } = require('./reducer');
 const {
-  loggingMiddleware,
-  delayActionMiddleware,
-  asyncMiddleware,
-} = require('./middleware');
+  initialState,
+  add,
+  done,
+  undone,
+  cancel,
+  uncancel,
+  loadTasks,
+} = require('./reducer');
+const { loggingMiddleware, delayActionMiddleware } = require('./middleware');
 const thunkMiddleware = require('redux-thunk');
 
 const addAction = createAction('add');
 const doneAction = createAction('done');
 const undoneAction = createAction('undone');
+const cancelAction = createAction('cancel');
+const uncancelAction = createAction('uncancel');
 const loadTasksAction = createAction('loadTasks');
 
-const todoReducer = createReducer(initialState, {
+const taskReducer = createReducer(initialState, {
   [addAction]: add,
   [doneAction]: done,
   [undoneAction]: undone,
+  [cancelAction]: cancel,
+  [uncancelAction]: uncancel,
   [loadTasksAction]: loadTasks,
 });
 
 const store$ = configureStore({
-  reducer: todoReducer,
+  reducer: taskReducer,
   middleware: [
     thunkMiddleware.default,
     loggingMiddleware,
@@ -37,5 +45,7 @@ module.exports = {
   addAction,
   doneAction,
   undoneAction,
+  cancelAction,
+  uncancelAction,
   loadTasksAction,
 };
