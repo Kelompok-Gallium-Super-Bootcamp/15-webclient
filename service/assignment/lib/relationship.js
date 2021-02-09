@@ -17,7 +17,7 @@ function setupRelationship(orm) {
 }
 
 async function init() {
-  const orm = new Sequelize('sanbercode1', 'postgres', 'postgres', {
+  const orm = new Sequelize('sanbercode1', 'postgres', '123', {
     host: 'localhost',
     port: 5432,
     dialect: 'postgres',

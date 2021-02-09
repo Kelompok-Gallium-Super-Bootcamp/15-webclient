@@ -7,7 +7,7 @@ const { initialState, add, loadWorkers } = require('./reducer');
 const thunkMiddleware = require('redux-thunk');
 
 const addAction = createAction('add');
-
+const loadAction = createAction('loadWorkers');
 const workerReducer = createReducer(initialState, {
   [addAction]: add,
   [loadAction]: loadWorkers,

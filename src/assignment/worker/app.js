@@ -42,9 +42,22 @@ render(state);
 store$.dispatch(loadWorkerAsync);
 
 function render(state) {
-  const row = tableData.insertRow(state.data.length);
-  for (let i = 0; i < state.data.length; i++) {
-    const kolom = row.insertCell(i);
-    kolom.innerHTML = state.data[i];
+  console.log('data : ', state.length);
+  for (let i = 0; i < state.length; i++) {
+    const row = tableData.insertRow(i + 1);
+    const id = row.insertCell(0);
+    const name = row.insertCell(1);
+    const address = row.insertCell(2);
+    const email = row.insertCell(3);
+    const telephone = row.insertCell(4);
+    const biography = row.insertCell(5);
+    const photo = row.insertCell(6);
+    id.innerHTML = state[i].id;
+    name.innerHTML = state[i].name;
+    address.innerHTML = state[i].address;
+    email.innerHTML = state[i].email;
+    telephone.innerHTML = state[i].telephone;
+    biography.innerHTML = state[i].biography;
+    photo.innerHTML = state[i].photo;
   }
 }
