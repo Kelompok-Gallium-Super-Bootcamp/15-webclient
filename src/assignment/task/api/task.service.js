@@ -20,11 +20,11 @@ async function undoneTaskApi(id) {
 }
 
 async function cancelTaskApi(id) {
-  return await client.delete(`http://localhost:9999/delete?id=${id}`);
+  return await client.delete(`http://localhost:9999/cancel?id=${id}`);
 }
 
 async function uncancelTaskApi(id) {
-  return await client.delete(`http://localhost:9999/delete?id=${id}`);
+  return await client.delete(`http://localhost:9999/cancel?id=${id}`);
 }
 
 module.exports = {

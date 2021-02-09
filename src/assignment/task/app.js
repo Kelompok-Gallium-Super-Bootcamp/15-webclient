@@ -54,7 +54,7 @@ function render(state) {
     let nc = card.cloneNode(true);
     nc.style.display = 'inline-block';
     const job = nc.querySelector('#job');
-    const attachment = nc.querySelector('#attach');
+    const attachment = nc.querySelector('#attachment');
     const btnDone = nc.querySelector('#button-done');
     const btnCancel = nc.querySelector('#button-cancel');
     job.innerText = data.job;
@@ -76,8 +76,6 @@ function render(state) {
       // dispatch action done
       store$.dispatch(cancelTaskAsync(data.id));
     };
-    if (data.done != 0) {
-      main.append(nc);
-    }
+     main.append(nc);
   }
 }
