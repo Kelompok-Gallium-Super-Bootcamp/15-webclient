@@ -12,7 +12,7 @@ function setupRelationship(orm) {
 
   task.belongsTo(worker, {
     onDelete: 'cascade',
-    foreignKey: 'assignee_id',
+    foreignKey: 'assigneeId',
   });
 }
 
@@ -58,23 +58,12 @@ async function update(table, idx, data) {
   }
 }
 
-async function updateStatus(idx, data) {
-  return task.update(
-    { status: data },
-    {
-      where: {
-        id: idx,
-      },
-    }
-  );
-}
-
 async function read(table) {
   switch (table) {
     case 'worker':
       return worker.findAll();
     case 'task':
-      return task.findAndCountAll({
+      return task.findAll({
         include: worker,
       });
     default:
@@ -107,5 +96,4 @@ module.exports = {
   read,
   del,
   update,
-  updateStatus,
 };

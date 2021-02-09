@@ -2,11 +2,11 @@ const { createServer } = require('http');
 const url = require('url');
 const { stdout } = require('process');
 const {
-  workerTotalSvc,
-  taskCancelledSvc,
-  taskDoneSvc,
-  taskTotalSvc,
-} = require('./performance.service');
+  createTaskSvc,
+  doneTaskSvc,
+  cancelTaskSvc,
+  listTaskSvc,
+} = require('./task.service');
 
 let server;
 
@@ -37,30 +37,30 @@ function run() {
     try {
       const uri = url.parse(req.url, true);
       switch (uri.pathname) {
-        case '/worker/total':
-          if (req.method === 'GET') {
-            return workerTotalSvc(req, res);
+        case '/register':
+          if (req.method === 'POST') {
+            return createTaskSvc(req, res);
           } else {
             respond(404);
           }
           break;
-        case '/task/total':
-          if (req.method === 'GET') {
-            return taskTotalSvc(req, res);
+        case '/done':
+          if (req.method === 'PUT') {
+            return doneTaskSvc(req, res);
           } else {
             respond(404);
           }
           break;
-        case '/task/done':
-          if (req.method === 'GET') {
-            return taskDoneSvc(req, res);
+        case '/cancel':
+          if (req.method === 'PUT') {
+            return cancelTaskSvc(req, res);
           } else {
             respond(404);
           }
           break;
-        case '/task/cancelled':
+        case '/list':
           if (req.method === 'GET') {
-            return taskCancelledSvc(req, res);
+            return listTaskSvc(req, res);
           } else {
             respond(404);
           }
@@ -74,7 +74,7 @@ function run() {
   });
 
   // run server
-  const PORT = 9132;
+  const PORT = 9999;
   server.listen(PORT, () => {
     stdout.write(`🚀 server listening on port ${PORT}\n`);
   });

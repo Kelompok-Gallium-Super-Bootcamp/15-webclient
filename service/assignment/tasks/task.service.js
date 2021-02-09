@@ -2,27 +2,30 @@ const Busboy = require('busboy');
 const url = require('url');
 const { Writable } = require('stream');
 const {
-  register,
-  list,
-  remove,
+  writeDataTask,
+  doneDataTask,
+  cancelDataTask,
+  readTask,
   ERROR_REGISTER_DATA_INVALID,
-  ERROR_WORKER_NOT_FOUND,
-} = require('./worker');
-const { saveFile } = require('../lib/storage');
-const { addWorkerLog, removeWorkerLog } = require('./worker.nats');
+  ERROR_DATA_NOT_FOUND,
+  ERROR_ASSIGNEE_ID_NOT_FOUND,
+  ERROR_ALREADY_DONE,
+  ERROR_ALREADY_CANCEL,
+} = require('./task');
+const { saveFile, randomFileName } = require('../lib/storage');
+const { addTotalTask, addCancelledTask, addDoneTask } = require('./task.nats');
 
-function registerSvc(req, res) {
+function createTaskSvc(req, res) {
   const busboy = new Busboy({ headers: req.headers });
 
   let finished;
 
   const data = {
-    name: '',
-    address: '',
-    email: '',
-    telephone: '',
-    biography: '',
-    photo: '',
+    job: '',
+    assigneeId: 0,
+    attachment: '',
+    done: false,
+    cancel: false,
   };
 
   function abort() {
@@ -35,25 +38,27 @@ function registerSvc(req, res) {
 
   busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
     switch (fieldname) {
-      case 'photo':
+      case 'attachment':
         try {
-          data.photo = await saveFile('photo', file, mimetype);
+          data.attachment = await saveFile('attachment', file, mimetype);
         } catch (err) {
           abort();
         }
         if (finished) {
           try {
-            const worker = await register(data);
-            addWorkerLog();
+            await writeDataTask(data);
+            addTotalTask();
             res.setHeader('content-type', 'application/json');
-            res.write(JSON.stringify(worker));
+            res.write(JSON.stringify(data));
           } catch (err) {
             if (err === ERROR_REGISTER_DATA_INVALID) {
               res.statusCode = 401;
+            } else if (err === ERROR_ASSIGNEE_ID_NOT_FOUND) {
+              res.statusCode = 404;
             } else {
               res.statusCode = 500;
             }
-            res.write(err);
+            res.write(JSON.stringify(err));
           } finally {
             res.end();
           }
@@ -71,9 +76,7 @@ function registerSvc(req, res) {
   });
 
   busboy.on('field', (fieldname, val) => {
-    if (
-      ['name', 'address', 'email', 'telephone', 'biography'].includes(fieldname)
-    ) {
+    if (['job', 'assigneeId', 'done', 'cancel'].includes(fieldname)) {
       data[fieldname] = val;
     }
   });
@@ -88,38 +91,24 @@ function registerSvc(req, res) {
   req.pipe(busboy);
 }
 
-async function listSvc(req, res) {
-  try {
-    const workers = await list();
-    res.setHeader('content-type', 'application/json');
-    res.write(JSON.stringify(workers));
-    res.end();
-  } catch (err) {
-    res.statusCode = 500;
-    res.end();
-    return;
-  }
-}
-
-async function removeSvc(req, res) {
+async function doneTaskSvc(req, res) {
   const uri = url.parse(req.url, true);
   const id = uri.query['id'];
   if (!id) {
-    const ERROR_ID_NOT_FOUND = 'parameter id tidak ditemukan';
     res.statusCode = 401;
-    res.write(ERROR_ID_NOT_FOUND);
+    res.write('parameter id tidak ditemukan');
     res.end();
     return;
   }
   try {
-    const worker = await remove(parseInt(id));
-    removeWorkerLog();
+    const tasks = await doneDataTask(id);
+    addDoneTask();
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
-    res.write(JSON.stringify(worker));
+    res.write(JSON.stringify(tasks));
     res.end();
   } catch (err) {
-    if (err === ERROR_WORKER_NOT_FOUND) {
+    if (err === ERROR_DATA_NOT_FOUND) {
       res.statusCode = 404;
       res.write(err);
       res.end();
@@ -131,8 +120,51 @@ async function removeSvc(req, res) {
   }
 }
 
+async function cancelTaskSvc(req, res) {
+  const uri = url.parse(req.url, true);
+  const id = uri.query['id'];
+  if (!id) {
+    res.statusCode = 401;
+    res.write('parameter id tidak ditemukan');
+    res.end();
+    return;
+  }
+  try {
+    const tasks = await cancelDataTask(id);
+    addCancelledTask();
+    res.setHeader('content-type', 'application/json');
+    res.statusCode = 200;
+    res.write(JSON.stringify(tasks));
+    res.end();
+  } catch (err) {
+    if (err === ERROR_DATA_NOT_FOUND) {
+      res.statusCode = 404;
+      res.write(err);
+      res.end();
+      return;
+    }
+    res.statusCode = 500;
+    res.end();
+    return;
+  }
+}
+
+async function listTaskSvc(req, res) {
+  try {
+    const tasks = await readTask();
+    res.setHeader('content-type', 'application/json');
+    res.write(JSON.stringify(tasks));
+    res.end();
+  } catch (err) {
+    res.statusCode = 500;
+    res.end();
+    return;
+  }
+}
+
 module.exports = {
-  listSvc,
-  registerSvc,
-  removeSvc,
+  createTaskSvc,
+  doneTaskSvc,
+  cancelTaskSvc,
+  listTaskSvc,
 };
